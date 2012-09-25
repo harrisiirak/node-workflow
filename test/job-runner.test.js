@@ -641,6 +641,124 @@ test('a failed workflow with a non successful "onerror"', function (t) {
 });
 
 
+test('a failed workflow with successful "onerror" (rollback)', function (t) {
+    factory.workflow({
+        name: 'Failed wf with onerror ok (rollback)',
+        timeout: 0,
+        chain: [ {
+            name: 'First successful task',
+            body: function (job, cb) {
+                job.foo = {};
+                job.foo.first = 'Ok';
+                return cb();
+            }
+        },
+        {
+            name: 'Second successful task',
+            body: function (job, cb) {
+                job.foo.second = 'Ok';
+                return cb();
+            }
+        },
+        {
+            name: 'Unsuccessful task',
+            body: function (job, cb) {
+                job.foo.third = 'This will fail';
+                return cb(job.foo);
+            }
+        }
+        ],
+        error_mode: 'rollback',
+        onerror: [ {
+            name: 'First successful task',
+            body: function (job, cb) {
+                if (job.foo.first && job.foo.first === 'Ok') {
+                    job.foo.first = 'Rollback first task';
+                    return cb(null, job.foo.first);
+                } else {
+                    return cb('Unknown value');
+                }
+            }
+        },
+        {
+            name: 'Second successful task',
+            body: function (job, cb) {
+                if (job.foo.second && job.foo.second === 'Ok') {
+                    job.foo.second = 'Rollback second task';
+                    return cb(null, job.foo.second);
+                } else {
+                    return cb('Unknown value');
+                }
+            }
+        },
+        {
+            name: 'Unsuccessful task',
+            body: function (job, cb) {
+                if (job.foo.third && job.foo.third === 'This will fail') {
+                    job.foo.third = 'Rollback third task';
+                    return cb(null, job.foo.third);
+                } else {
+                    return cb('Unknown failure');
+                }
+            }
+        }]
+    }, function (err, wf) {
+        t.ifError(err, 'wf error');
+        t.ok(wf, 'wf ok');
+        t.equal(wf.error_mode, 'rollback', 'error_mode ok');
+
+        factory.job({
+            workflow: wf.uuid,
+            exec_after: '2012-01-03T12:54:05.788Z'
+        }, function (err, job) {
+            t.ifError(err, 'job error');
+            t.ok(job, 'job ok');
+            wf_job_runner = new WorkflowJobRunner({
+                runner: runner,
+                backend: backend,
+                job: job,
+                trace: false,
+                dtrace: DTRACE
+            });
+            t.ok(wf_job_runner, 'wf_job_runner ok');
+            t.equal(wf_job_runner.timeout, null, 'no runner timeout');
+            t.equal(typeof (job.timeout), 'undefined', 'no job timeout');
+            backend.runJob(job.uuid, runner.uuid, function (err, job) {
+                t.ifError(err, 'backend.runJob error');
+                wf_job_runner.run(function (err) {
+                    t.ifError(err, 'wf_job_runner run error');
+                    backend.getJob(job.uuid, function (err, job) {
+                        t.ifError(err, 'get job error');
+                        t.equal(job.execution, 'succeeded', 'job execution');
+                        t.ok(util.isArray(job.chain_results),
+                          'chain results array');
+                        t.ok(util.isArray(job.onerror_results),
+                          'onerror results array');
+
+                        t.equal(job.onerror_results[2].result, 'Rollback first task');
+                        t.ok(job.foo.first, 'job task added property ok');
+                        t.ok(job.onerror_results[2].started_at);
+                        t.ok(job.onerror_results[2].finished_at);
+
+                        t.equal(job.onerror_results[1].result, 'Rollback second task');
+                        t.ok(job.foo.first, 'job task added property ok');
+                        t.ok(job.onerror_results[1].started_at);
+                        t.ok(job.onerror_results[1].finished_at);
+
+                        t.equal(job.onerror_results[0].result, 'Rollback third task');
+                        t.ok(job.foo.first, 'job task added property ok');
+                        t.ok(job.onerror_results[0].started_at);
+                        t.ok(job.onerror_results[0].finished_at);
+
+                        t.end();
+                    });
+                });
+            });
+        });
+    });
+});
+
+
 test('a job cannot access undefined sandbox modules', function (t) {
     factory.workflow({
         name: 'with undefined sandbox',
