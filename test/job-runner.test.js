@@ -741,12 +741,12 @@ test('a failed workflow with successful "onerror" (rollback)', function (t) {
                         t.ok(job.onerror_results[2].finished_at);
 
                         t.equal(job.onerror_results[1].result, 'Rollback second task');
-                        t.ok(job.foo.first, 'job task added property ok');
+                        t.ok(job.foo.second, 'job task added property ok');
                         t.ok(job.onerror_results[1].started_at);
                         t.ok(job.onerror_results[1].finished_at);
 
                         t.equal(job.onerror_results[0].result, 'Rollback third task');
-                        t.ok(job.foo.first, 'job task added property ok');
+                        t.ok(job.foo.third, 'job task added property ok');
                         t.ok(job.onerror_results[0].started_at);
                         t.ok(job.onerror_results[0].finished_at);
 
