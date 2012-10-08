@@ -612,7 +612,6 @@ test('a failed workflow with successful "onerror" (rollback)', function (t) {
             });
             t.ok(wf_job_runner, 'wf_job_runner ok');
             t.equal(wf_job_runner.timeout, null, 'no runner timeout');
-            //t.equal(typeof (job.timeout), 'undefined', 'no job timeout');
             backend.runJob(job.uuid, runner.uuid, function (err, job) {
                 t.ifError(err, 'backend.runJob error');
                 wf_job_runner.run(function (err) {
@@ -625,17 +624,20 @@ test('a failed workflow with successful "onerror" (rollback)', function (t) {
                         t.ok(util.isArray(job.onerror_results),
                           'onerror results array');
 
-                        t.equal(job.onerror_results[2].result, 'Rollback first task');
+                        t.equal(job.onerror_results[2].result,
+                            'Rollback first task');
                         t.ok(job.foo.first, 'job task added property ok');
                         t.ok(job.onerror_results[2].started_at);
                         t.ok(job.onerror_results[2].finished_at);
 
-                        t.equal(job.onerror_results[1].result, 'Rollback second task');
+                        t.equal(job.onerror_results[1].result,
+                            'Rollback second task');
                         t.ok(job.foo.second, 'job task added property ok');
                         t.ok(job.onerror_results[1].started_at);
                         t.ok(job.onerror_results[1].finished_at);
 
-                        t.equal(job.onerror_results[0].result, 'Rollback third task');
+                        t.equal(job.onerror_results[0].result,
+                            'Rollback third task');
                         t.ok(job.foo.third, 'job task added property ok');
                         t.ok(job.onerror_results[0].started_at);
                         t.ok(job.onerror_results[0].finished_at);
@@ -649,10 +651,9 @@ test('a failed workflow with successful "onerror" (rollback)', function (t) {
 });
 
 
-
-test('a failed workflow with successful "onerror" (rollback, with an exception)', function (t) {
+test('a failed workflow with successful "onerror" (exception)', function (t) {
     factory.workflow({
-        name: 'Failed wf with onerror ok (rollback, with an exception)',
+        name: 'Failed wf with onerror ok (rollback, exception)',
         timeout: 0,
         chain: [ {
             name: 'First successful task',
@@ -732,7 +733,6 @@ test('a failed workflow with successful "onerror" (rollback, with an exception)'
             });
             t.ok(wf_job_runner, 'wf_job_runner ok');
             t.equal(wf_job_runner.timeout, null, 'no runner timeout');
-            //t.equal(typeof (job.timeout), 'undefined', 'no job timeout');
             backend.runJob(job.uuid, runner.uuid, function (err, job) {
                 t.ifError(err, 'backend.runJob error');
                 wf_job_runner.run(function (err) {
@@ -745,17 +745,20 @@ test('a failed workflow with successful "onerror" (rollback, with an exception)'
                         t.ok(util.isArray(job.onerror_results),
                           'onerror results array');
 
-                        t.equal(job.onerror_results[2].result, 'Rollback first task');
+                        t.equal(job.onerror_results[2].result,
+                            'Rollback first task');
                         t.ok(job.foo.first, 'job task added property ok');
                         t.ok(job.onerror_results[2].started_at);
                         t.ok(job.onerror_results[2].finished_at);
 
-                        t.equal(job.onerror_results[1].result, 'Rollback second task');
+                        t.equal(job.onerror_results[1].result,
+                            'Rollback second task');
                         t.ok(job.foo.second, 'job task added property ok');
                         t.ok(job.onerror_results[1].started_at);
                         t.ok(job.onerror_results[1].finished_at);
 
-                        t.equal(job.onerror_results[0].result, 'Rollback third task');
+                        t.equal(job.onerror_results[0].result,
+                            'Rollback third task');
                         t.ok(job.foo.third, 'job task added property ok');
                         t.ok(job.onerror_results[0].started_at);
                         t.ok(job.onerror_results[0].finished_at);
