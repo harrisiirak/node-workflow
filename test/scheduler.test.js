@@ -19,11 +19,12 @@ var okTask = {
     body: function (job, cb) {
         return cb(null);
     }
-},
-okWf, failWf, theJob, failWfWithError;
+};
+
+var okWf = null;
+var okSchedule = null;
 
 var helper = require('./helper');
-
 var DTRACE = createDTrace('workflow');
 
 test('throws on missing opts', function (t) {
@@ -81,28 +82,46 @@ test('setup', function (t) {
             t.ifError(err, 'ok wf error');
             t.ok(wf, 'OK wf OK');
 
-            var schedule = {
-                target: 'schedule-test',
-                workflow: wf.uuid,
-                exec_schedule: ''
-            };
+            okWf = wf;
 
-            factory.schedule(schedule, function (err, schedule) {
-                console.log(arguments);
-            });
-
-            // schedule = {
-            //     target: 'schedule-test-2',
-            //     workflow: wf.uuid,
-            //     exec_schedule: '*/2'
-            // };
-
-            // factory.schedule(schedule, function(err, schedule) {
-            //     console.log(arguments);
-            // });
+            runner.run();
+            t.end();
         });
+    });
+});
+
+test('create a schedule', function(t) {
+    var schedule = {
+        target: 'test-schedule',
+        workflow: okWf.uuid,
+        exec_schedule: ''
+    };
+
+    factory.schedule(schedule, function (err, schedule) {
+        t.ifError(err, 'schedule create error');
+        t.ok(schedule);
+
+        okSchedule = schedule;
+        t.end();
+    });
+});
+
+test('get schedule', function(t) {
+    backend.getSchedule(okSchedule.uuid, function (err, schedule) {
+        t.ifError(err, 'schedule read error');
+        t.ok(schedule);
+
+        t.end();
+    });
+});
 
 
-        runner.run();
+test('get all schedules', function(t) {
+    backend.getSchedules(function (err, schedules) {
+        t.ifError(err, 'schedule read error');
+        t.ok(schedules);
+        t.equal(schedules.length, 1, 'schedules count matches');
+
+        t.end();
     });
 });
