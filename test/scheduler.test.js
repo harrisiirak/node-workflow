@@ -87,19 +87,19 @@ test('setup', function (t) {
                 exec_schedule: ''
             };
 
-            factory.schedule(schedule, function(err, schedule) {
+            factory.schedule(schedule, function (err, schedule) {
                 console.log(arguments);
             });
 
-            schedule = {
-                target: 'schedule-test-2',
-                workflow: wf.uuid,
-                exec_schedule: '*/2'
-            };
+            // schedule = {
+            //     target: 'schedule-test-2',
+            //     workflow: wf.uuid,
+            //     exec_schedule: '*/2'
+            // };
 
-            factory.schedule(schedule, function(err, schedule) {
-                console.log(arguments);
-            });
+            // factory.schedule(schedule, function(err, schedule) {
+            //     console.log(arguments);
+            // });
         });
 
 
