@@ -24,7 +24,8 @@
     "node-uuid": "1.3.3",
     "bunyan": "0.13.5",
     "async": "0.1.22",
-    "restify": "1.4.3"
+    "restify": "1.4.3",
+    "cron-parser": "git+ssh://git@192.168.1.32/cron-parser"
   },
   "scripts": {
     "test": "./node_modules/.bin/tap ./test/*.test.js"
