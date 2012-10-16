@@ -51,10 +51,9 @@ test('throws on missing dtrace', function (t) {
     t.end();
 });
 
-
 test('setup', function (t) {
-    config.dtrace = DTRACE;
     identifier = config.runner.identifier;
+    config.dtrace = DTRACE;
     config.logger = {
         streams: [ {
             level: 'info',
@@ -64,6 +63,14 @@ test('setup', function (t) {
             path: path.resolve(__dirname, './test.runner.log')
         }]
     };
+
+    config.backend = {
+        module: "wf-sqlite-backend",
+        opts: {
+
+        }
+    };
+
     runner = new WorkflowRunner(config);
     t.ok(runner);
     t.ok(runner.backend, 'backend ok');
@@ -74,8 +81,10 @@ test('setup', function (t) {
         t.ok(factory);
 
         // okWf:
+        var id = uuid();
         factory.workflow({
-            name: 'OK wf',
+            uuid: id,
+            name: 'OK wf ' + id,
             chain: [okTask],
             timeout: 60
         }, function (err, wf) {
@@ -87,6 +96,59 @@ test('setup', function (t) {
             runner.run();
             t.end();
         });
+    });
+});
+
+test('get and delete all schedule jobs', function (t) {
+    backend.getSchedules(function (err, schedules) {
+        t.ifError(err, 'schedule read error');
+        t.ok(schedules);
+
+        if (schedules.length > 0) {
+            var count = 0;
+            schedules.forEach(function(schedule, index) {
+                count++;
+
+                backend.getScheduleJobs(schedule, function (err, scheduleJobs) {
+                    t.ifError(err, 'schedule jobs error');
+                    t.ok(scheduleJobs);
+
+                    scheduleJobs.forEach(function(scheduleJob, index) {
+                        backend.deleteScheduleJob(scheduleJob, function (err) {
+                            t.ifError(err, 'schedule job delete error');
+
+                            if (--count === 0) {
+                                t.end();
+                            }
+                        })
+                    });
+                });
+            });
+        } else {
+            t.end();
+        }
+    });
+});
+
+test('get and delete all schedules', function (t) {
+    backend.getSchedules(function (err, schedules) {
+        t.ifError(err, 'schedule read error');
+        t.ok(schedules);
+
+        if (schedules.length > 0) {
+            var count = 0;
+            schedules.forEach(function(schedule, index) {
+                count++;
+                backend.deleteSchedule(schedule, function (err) {
+                    t.ifError(err, 'schedule delete error');
+                    if (--count === 0) {
+                        t.end();
+                    }
+                });
+            });
+        } else {
+            t.end();
+        }
     });
 });
 
