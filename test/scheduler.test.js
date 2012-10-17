@@ -64,12 +64,12 @@ test('setup', function (t) {
         }]
     };
 
-    config.backend = {
-        module: "wf-sqlite-backend",
-        opts: {
+    // config.backend = {
+    //     module: "wf-sqlite-backend",
+    //     opts: {
 
-        }
-    };
+    //     }
+    // };
 
     runner = new WorkflowRunner(config);
     t.ok(runner);
@@ -106,21 +106,21 @@ test('get and delete all schedule jobs', function (t) {
 
         if (schedules.length > 0) {
             var count = 0;
-            schedules.forEach(function(schedule, index) {
+            schedules.forEach(function (schedule, index) {
                 count++;
 
                 backend.getScheduleJobs(schedule, function (err, scheduleJobs) {
                     t.ifError(err, 'schedule jobs error');
                     t.ok(scheduleJobs);
 
-                    scheduleJobs.forEach(function(scheduleJob, index) {
+                    scheduleJobs.forEach(function (scheduleJob, index) {
                         backend.deleteScheduleJob(scheduleJob, function (err) {
                             t.ifError(err, 'schedule job delete error');
 
                             if (--count === 0) {
                                 t.end();
                             }
-                        })
+                        });
                     });
                 });
             });
@@ -137,7 +137,7 @@ test('get and delete all schedules', function (t) {
 
         if (schedules.length > 0) {
             var count = 0;
-            schedules.forEach(function(schedule, index) {
+            schedules.forEach(function (schedule, index) {
                 count++;
                 backend.deleteSchedule(schedule, function (err) {
                     t.ifError(err, 'schedule delete error');
@@ -152,7 +152,7 @@ test('get and delete all schedules', function (t) {
     });
 });
 
-test('create a schedule', function(t) {
+test('create a schedule', function (t) {
     var schedule = {
         target: 'test-schedule',
         workflow: okWf.uuid,
@@ -168,7 +168,7 @@ test('create a schedule', function(t) {
     });
 });
 
-test('get schedule', function(t) {
+test('get schedule', function (t) {
     backend.getSchedule(okSchedule.uuid, function (err, schedule) {
         t.ifError(err, 'schedule read error');
         t.ok(schedule);
@@ -177,8 +177,7 @@ test('get schedule', function(t) {
     });
 });
 
-
-test('get all schedules', function(t) {
+test('get all schedules', function (t) {
     backend.getSchedules(function (err, schedules) {
         t.ifError(err, 'schedule read error');
         t.ok(schedules);
@@ -186,4 +185,30 @@ test('get all schedules', function(t) {
 
         t.end();
     });
+});
+
+test('get running schedule job status', { timeout: 130 * 1000 }, function (t) {
+    var start = Date.now();
+    var interval = setInterval(function() {
+        var timeout = (Date.now() - start >= 120 * 1000); // 120 seconds
+
+        if (timeout) {
+            clearInterval(interval);
+            runner.quit(function () {
+                t.ok(!timeout, 'scheduled job timeout');
+                t.end();
+            });
+        } else {
+            backend.getScheduleJobs(okSchedule, function (err, scheduleJobs) {
+                t.ifError(err, 'schedule read error');
+
+                if (scheduleJobs !== undefined && scheduleJobs[0].execution === 'succeeded') {
+                    clearInterval(interval);
+                    runner.quit(function () {
+                        t.end();
+                    });
+                }
+            });
+        }
+    }, 1000);
 });
