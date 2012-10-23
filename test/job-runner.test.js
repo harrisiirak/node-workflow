@@ -26,7 +26,8 @@ var Backend = require(helper.config().backend.module),
     backend = new Backend(helper.config().backend.opts),
     factory, wf_job_runner;
 
-var okWf, failWf, timeoutWf, reQueueWf, infoWf, reQueuedJob, elapsed;
+var okWf, failWf, timeoutWf, reQueueWf, validationWf,
+    infoWf, reQueuedJob, elapsed;
 
 var FakeRunner = function () {
     this.child_processes = {};
@@ -165,7 +166,25 @@ test('setup', function (t) {
                             t.ok(wf, 'Info wf ok');
                             infoWf = wf;
 
-                            t.end();
+                            // validationWf
+                            factory.workflow({
+                                name: 'Validation wf',
+                                chain: [ {
+                                    name: 'Some Task',
+                                    retry: 1,
+                                    body: function (job, cb) {
+                                        job.log.info('recording some info');
+                                        return cb(null);
+                                    }
+                                }],
+                                timeout: 60
+                            }, function (err, wf) {
+                                t.ifError(err, 'Validation wf error');
+                                t.ok(wf, 'Validation wf ok');
+                                validationWf = wf;
+
+                                t.end();
+                            });
                         });
                     });
                 });
@@ -267,6 +286,47 @@ test('run job ok', function (t) {
             });
 
         });
+    });
+});
+
+test('a single job validation', function (t) {
+    var j = {
+        target: 'aTarget',
+        workflow: validationWf.uuid
+    }
+
+    factory.validateJob(j, function (err) {
+        t.ifError(err, 'validation error');
+
+        factory.job(j, function (err, job) {
+            t.ifError(err, 'job error');
+            t.ok(job, 'job ok');
+
+            factory.validateJob(j, function (err) {
+                t.ok(err, 'error expected');
+                t.end();
+            });
+        });
+    });
+});
+
+test('multiple job validation', function (t) {
+    var jobs = [
+        // Valid job params
+        {
+            workflow: infoWf.uuid
+        },
+
+        // Invalid job params (existing job, will fail)
+        {
+            target: 'aTarget',
+            workflow: validationWf.uuid
+        }
+    ];
+
+    factory.validateJob(jobs, function (err) {
+        t.ok(err, 'error expected');
+        t.end();
     });
 });
 

@@ -64,12 +64,12 @@ test('setup', function (t) {
         }]
     };
 
-    // config.backend = {
-    //     module: "wf-sqlite-backend",
-    //     opts: {
+    config.backend = {
+         module: "wf-sqlite-backend",
+         opts: {
 
-    //     }
-    // };
+         }
+     };
 
     runner = new WorkflowRunner(config);
     t.ok(runner);
@@ -202,7 +202,9 @@ test('get running schedule job status', { timeout: 130 * 1000 }, function (t) {
             backend.getScheduleJobs(okSchedule, function (err, scheduleJobs) {
                 t.ifError(err, 'schedule read error');
 
-                if (scheduleJobs !== undefined && scheduleJobs[0].execution === 'succeeded') {
+                if (scheduleJobs !== undefined &&
+                    scheduleJobs.length > 0 &&
+                    scheduleJobs[0].execution === 'succeeded') {
                     clearInterval(interval);
                     runner.quit(function () {
                         t.end();
