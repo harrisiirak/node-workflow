@@ -295,15 +295,16 @@ test('a single job validation', function (t) {
         workflow: validationWf.uuid
     }
 
-    factory.validateJob(j, function (err) {
+    factory.validateJob(j, function (err, errorJob) {
         t.ifError(err, 'validation error');
 
         factory.job(j, function (err, job) {
             t.ifError(err, 'job error');
             t.ok(job, 'job ok');
 
-            factory.validateJob(j, function (err) {
+            factory.validateJob(j, function (err, errorJob) {
                 t.ok(err, 'error expected');
+                t.ok(errorJob, 'a job');
                 t.end();
             });
         });
