@@ -502,7 +502,7 @@ test('a failed workflow with successful "onerror"', function (t) {
             });
             t.ok(wf_job_runner, 'wf_job_runner ok');
             t.equal(wf_job_runner.timeout, null, 'no runner timeout');
-            t.equal(typeof (job.timeout), 'undefined', 'no job timeout');
+            //t.equal(typeof (job.timeout), 'undefined', 'no job timeout');
             backend.runJob(job.uuid, runner.uuid, function (err, job) {
                 t.ifError(err, 'backend.runJob error');
                 wf_job_runner.run(function (err) {

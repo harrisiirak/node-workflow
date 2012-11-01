@@ -64,12 +64,14 @@ test('setup', function (t) {
         }]
     };
 
+    /*
     config.backend = {
          module: "wf-sqlite-backend",
          opts: {
 
          }
      };
+     */
 
     runner = new WorkflowRunner(config);
     t.ok(runner);
