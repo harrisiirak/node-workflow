@@ -325,8 +325,9 @@ test('multiple job validation', function (t) {
         }
     ];
 
-    factory.validateJob(jobs, function (err) {
+    factory.validateJob(jobs, function (err, errJob) {
         t.ok(err, 'error expected');
+        t.ok(errJob, 'a job');
         t.end();
     });
 });
