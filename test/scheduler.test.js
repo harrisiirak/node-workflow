@@ -193,7 +193,6 @@ test('get running schedule job status', { timeout: 130 * 1000 }, function (t) {
     var start = Date.now();
     var interval = setInterval(function() {
         var timeout = (Date.now() - start >= 120 * 1000); // 120 seconds
-
         if (timeout) {
             clearInterval(interval);
             runner.quit(function () {
